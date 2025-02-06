@@ -233,15 +233,21 @@ public class WebViewProxyApi extends PigeonApiWebView {
   @Override
   protected void onScrollChanged(int l, int t, int oldl, int oldt) {
     super.onScrollChanged(l, t, oldl, oldt);
-    evaluateJavascript("window.onScrollChanged(" + t + ")", null);
+    evaluateJavascript(this, "window.onScrollChanged(" + t + ")", result -> Unit.INSTANCE);
   }
 
-  // OWN IMPLEMENTATION
   @Override
   protected void onOverScrolled(int scrollX, int scrollY, boolean clampedX, boolean clampedY) {
     super.onOverScrolled(scrollX, scrollY, clampedX, clampedY);
-    evaluateJavascript("window.onOverScrolled(" + scrollY + ")", null);
+    evaluateJavascript(this, "window.onOverScrolled(" + scrollY + ")", result -> Unit.INSTANCE);
   }
+
+  private void evaluateJavascript(WebView webView, String script, Function1<? super Result<String>, Unit> resultCallback) {
+    webView.evaluateJavascript(script, value -> {
+      resultCallback.invoke(Result.Companion.success(value));
+    });
+  }
+  // END OWN
 
   @Nullable
   @Override
