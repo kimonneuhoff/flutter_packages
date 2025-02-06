@@ -128,9 +128,6 @@ public class WebViewProxyApi extends PigeonApiWebView {
                       () -> {
                         // OWN IMPLEMENTATION
                         api.evaluateJavascript(this, "window.onOverScrolled(" + scrollY + ")", reply -> null);
-
-                        api.onScrollChanged(
-                                this, (long) left, (long) top, (long) oldLeft, (long) oldTop, reply -> null);
                       }
               );
     }
@@ -143,7 +140,7 @@ public class WebViewProxyApi extends PigeonApiWebView {
           .runOnMainThread(
               () -> {
                 // OWN IMPLEMENTATION
-                api.evaluateJavascript(this, "window.onScrollChanged(" + t + ")", reply -> null);
+                api.evaluateJavascript(this, "window.onScrollChanged(" + top + ")", reply -> null);
 
                 api.onScrollChanged(
                       this, (long) left, (long) top, (long) oldLeft, (long) oldTop, reply -> null);
