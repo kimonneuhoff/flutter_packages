@@ -47,6 +47,10 @@ public class WebViewProxyApi extends PigeonApiWebView {
 
       setWebViewClient(currentWebViewClient);
       setWebChromeClient(currentWebChromeClient);
+
+      // OWN IMPLEMENTATION
+      // Disable the overscroll effect
+      setOverScrollMode(OVER_SCROLL_NEVER);
     }
 
     @Nullable
@@ -223,6 +227,20 @@ public class WebViewProxyApi extends PigeonApiWebView {
       @NonNull Function1<? super Result<String>, Unit> callback) {
     pigeon_instance.evaluateJavascript(
         javascriptString, result -> ResultCompat.success(result, callback));
+  }
+
+  // OWN IMPLEMENTATION
+  @Override
+  protected void onScrollChanged(int l, int t, int oldl, int oldt) {
+    super.onScrollChanged(l, t, oldl, oldt);
+    evaluateJavascript("window.onScrollChanged(" + t + ")", null);
+  }
+
+  // OWN IMPLEMENTATION
+  @Override
+  protected void onOverScrolled(int scrollX, int scrollY, boolean clampedX, boolean clampedY) {
+    super.onOverScrolled(scrollX, scrollY, clampedX, clampedY);
+    evaluateJavascript("window.onOverScrolled(" + scrollY + ")", null);
   }
 
   @Nullable
