@@ -77,6 +77,8 @@ public class WebViewProxyApi extends PigeonApiWebView {
       }
     }
 
+
+
     // Attempt to traverse the parents of this view until a FlutterView is found.
     private FlutterView tryFindFlutterView() {
       ViewParent currentView = this;
@@ -117,14 +119,36 @@ public class WebViewProxyApi extends PigeonApiWebView {
       return currentWebChromeClient;
     }
 
+    // OWN IMPLEMENTATION
+    @Override
+    protected void onOverScrolled(int scrollX, int scrollY, boolean clampedX, boolean clampedY) {
+      super.onOverScrolled(scrollX, scrollY, clampedX, clampedY);
+      api.getPigeonRegistrar()
+              .runOnMainThread(
+                      () -> {
+                        // OWN IMPLEMENTATION
+                        api.evaluateJavascript(this, "window.onOverScrolled(" + scrollY + ")", reply -> null);
+
+                        api.onScrollChanged(
+                                this, (long) left, (long) top, (long) oldLeft, (long) oldTop, reply -> null);
+                      }
+              );
+    }
+    // END OWN
+
     @Override
     protected void onScrollChanged(int left, int top, int oldLeft, int oldTop) {
       super.onScrollChanged(left, top, oldLeft, oldTop);
       api.getPigeonRegistrar()
           .runOnMainThread(
-              () ->
-                  api.onScrollChanged(
-                      this, (long) left, (long) top, (long) oldLeft, (long) oldTop, reply -> null));
+              () -> {
+                // OWN IMPLEMENTATION
+                api.evaluateJavascript(this, "window.onScrollChanged(" + t + ")", reply -> null);
+
+                api.onScrollChanged(
+                      this, (long) left, (long) top, (long) oldLeft, (long) oldTop, reply -> null);
+              }
+          );
     }
   }
 
@@ -228,26 +252,6 @@ public class WebViewProxyApi extends PigeonApiWebView {
     pigeon_instance.evaluateJavascript(
         javascriptString, result -> ResultCompat.success(result, callback));
   }
-
-  // OWN IMPLEMENTATION
-  @Override
-  protected void onScrollChanged(int l, int t, int oldl, int oldt) {
-    super.onScrollChanged(l, t, oldl, oldt);
-    evaluateJavascript(this, "window.onScrollChanged(" + t + ")", result -> Unit.INSTANCE);
-  }
-
-  @Override
-  protected void onOverScrolled(int scrollX, int scrollY, boolean clampedX, boolean clampedY) {
-    super.onOverScrolled(scrollX, scrollY, clampedX, clampedY);
-    evaluateJavascript(this, "window.onOverScrolled(" + scrollY + ")", result -> Unit.INSTANCE);
-  }
-
-  private void evaluateJavascript(WebView webView, String script, Function1<? super Result<String>, Unit> resultCallback) {
-    webView.evaluateJavascript(script, value -> {
-      resultCallback.invoke(Result.Companion.success(value));
-    });
-  }
-  // END OWN
 
   @Nullable
   @Override
