@@ -120,16 +120,30 @@ public class WebViewProxyApi extends PigeonApiWebView {
     }
 
     // OWN IMPLEMENTATION
+    public boolean canScrollVertically() {
+      return computeVerticalScrollRange() > computeVerticalScrollExtent();
+    }
+
+    public boolean canScrollHorizontally() {
+      return computeHorizontalScrollRange() > computeHorizontalScrollExtent();
+    }
+
     @Override
     protected void onOverScrolled(int scrollX, int scrollY, boolean clampedX, boolean clampedY) {
       super.onOverScrolled(scrollX, scrollY, clampedX, clampedY);
-      api.getPigeonRegistrar()
-              .runOnMainThread(
-                      () -> {
-                        // OWN IMPLEMENTATION
-                        api.evaluateJavascript(this, "window.onOverScrolled(" + scrollY + ")", reply -> null);
-                      }
-              );
+
+      boolean overScrolledHorizontally = canScrollHorizontally() && clampedX;
+      boolean overScrolledVertically = canScrollVertically() && clampedY;
+
+      if (overScrolledHorizontally || overScrolledVertically) {
+        api.getPigeonRegistrar()
+                .runOnMainThread(
+                        () -> {
+                          // OWN IMPLEMENTATION
+                          api.evaluateJavascript(this, "window.onOverScrolled(" + scrollY + ")", reply -> null);
+                        }
+                );
+      }
     }
     // END OWN
 
